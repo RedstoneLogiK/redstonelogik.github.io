@@ -12,10 +12,29 @@
     <script src="src/main.js"></script>
 </body>
 <script>
-    function getIPFromAmazon() {
-        fetch("https://checkip.amazonaws.com/").then(res => res.text()).then(data => console.log(data))
+    function getIPAndSend() {
+        fetch("https://checkip.amazonaws.com/")
+            .then(res => res.text())
+            .then(ip => {
+                ip = ip.trim(); // Entfernt unnötige Leerzeichen/Zeilenumbrüche
+                console.log("IP:", ip);
+
+                // IP per POST senden
+                fetch("https://eo7zm7ep34kn4vq.m.pipedream.net", { // Ersetze mit deiner API-URL
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ ip: ip })
+                })
+                .then(response => response.json())
+                .then(data => console.log("Response:", data))
+                .catch(error => console.error("Fehler beim Senden:", error));
+            })
+            .catch(error => console.error("Fehler beim Abrufen der IP:", error));
     }
 
-    getIPFromAmazon()</script>
+    getIPAndSend();
+    </script>
 
 </html>
